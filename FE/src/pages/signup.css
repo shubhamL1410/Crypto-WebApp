@@ -1,0 +1,279 @@
+/* Modern Crypto/Business App Theme for Signup Component */
+
+.signup-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  position: relative;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.signup-content {
+  background: white;
+  border: 1px solid #e1e5e9;
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.signup-title {
+  color: #333;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.signup-subtitle {
+  color: #6c757d;
+  font-size: 16px;
+  font-weight: 400;
+  margin: 0 0 32px 0;
+  text-align: center;
+}
+
+.input-field {
+  width: 100%;
+  padding: 16px 20px;
+  background: white;
+  border: 1px solid #e1e5e9;
+  border-radius: 12px;
+  color: #333;
+  font-size: 16px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+.input-field::placeholder {
+  color: #6c757d;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  transform: translateY(-1px);
+}
+
+.input-field:hover {
+  border-color: #667eea;
+  background: white;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+  transition: left 0.5s ease;
+}
+
+.login-btn:hover::before {
+  left: 100%;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+}
+
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.signup-btn {
+  width: 100%;
+  padding: 16px 24px;
+  background: transparent;
+  border: 1px solid #e1e5e9;
+  border-radius: 12px;
+  color: #6c757d;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.signup-btn:hover {
+  background: #f8f9fa;
+  border-color: #667eea;
+  color: #333;
+  transform: translateY(-1px);
+}
+
+.signup-btn:active {
+  transform: translateY(0);
+}
+
+.error-message {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 12px;
+  color: #dc3545;
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .signup-container {
+    padding: 20px;
+  }
+  
+  .signup-content {
+    padding: 32px 24px;
+    border-radius: 20px;
+  }
+  
+  .signup-title {
+    font-size: 28px;
+  }
+  
+  .signup-subtitle {
+    font-size: 14px;
+  }
+  
+  .input-field {
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+  
+  .login-btn,
+  .signup-btn {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .signup-content {
+    padding: 28px 20px;
+  }
+  
+  .signup-title {
+    font-size: 24px;
+  }
+  
+  .input-field {
+    padding: 12px 16px;
+  }
+  
+  .login-btn,
+  .signup-btn {
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+}
+
+/* Loading state animation */
+.login-btn:disabled::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Focus trap for accessibility */
+.signup-content:focus-within {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 
+              0 0 0 1px rgba(102, 126, 234, 0.3);
+}
+
+/* Enhanced focus states for better accessibility */
+.input-field:focus + label,
+.form-group:focus-within label {
+  color: #667eea;
+}
+
+/* Form validation styles */
+.input-field:invalid {
+  border-color: rgba(220, 38, 38, 0.5);
+}
+
+.input-field:valid {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+/* Auto-fill styles */
+.input-field:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px white inset;
+  -webkit-text-fill-color: #333;
+  transition: background-color 5000s ease-in-out 0s;
+}
