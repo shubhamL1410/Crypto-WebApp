@@ -1,7 +1,10 @@
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
 const connectDB = require("./db");
+const mongoose = require("mongoose");
+const priceUpdater = require("./services/priceUpdater");
 const PORT = process.env.PORT || 3000;
 
 // Middleware
@@ -37,8 +40,21 @@ app.use('*', (req, res) => {
 const startServer = async () => {
   try {
     await connectDB();
+    
+    // Add top coins to database on startup (don't block server start)
+    console.log('Adding top coins to database...');
+    priceUpdater.addTopCoins(20).then(count => {
+      console.log(`Successfully added ${count} coins to database`);
+    }).catch(err => {
+      console.error('Error adding coins on startup:', err.message);
+    });
+    
+    // Start automatic price updates (every 5 minutes)
+    priceUpdater.startAutoUpdate(300000);
+    
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
+      console.log('Real-time price updates are active');
     });
   } catch (error) {
     console.error('Failed to start server:', error);

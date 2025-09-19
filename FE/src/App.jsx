@@ -4,8 +4,10 @@ import './App.css';
 import Home from './pages/Home';
 import CoinPage from './pages/CoinPage';
 import Trade from './pages/Trade';
+import Portfolio from './pages/Portfolio';
 import Signup from './pages/signup';
 import Login from './pages/login';
+import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 import { authService } from './services/authService';
 
@@ -50,7 +52,7 @@ function App() {
         {isAuthenticated && user && (
           <header className="app-header">
             <div className="header-content">
-              <h1>Crypto Tracker</h1>
+              <h1>Crypto Vault</h1>
               <div className="user-info">
                 <span>Welcome, {user.name}!</span>
                 <button onClick={handleLogout} className="logout-btn">
@@ -83,7 +85,22 @@ function App() {
           } />
           <Route path="/trade" element={
             <ProtectedRoute>
-              <Trade />
+              <Trade showConvert={false} />
+            </ProtectedRoute>
+          } />
+          <Route path="/convert" element={
+            <ProtectedRoute>
+              <Trade initialTab="convert" />
+            </ProtectedRoute>
+          } />
+          <Route path="/portfolio" element={
+            <ProtectedRoute>
+              <Portfolio />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           } />
           <Route path="/coin/:id" element={

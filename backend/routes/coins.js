@@ -5,17 +5,62 @@ const auth = require("../middleware/auth");
 const Coin = require("../models/coins");
 const Transaction = require("../models/transaction");
 const Portfolio = require("../models/portfolio");
+const Wallet = require("../models/wallet");
+const priceService = require("../services/priceService");
+const priceUpdater = require("../services/priceUpdater");
 
+
+// Get all coins with real-time prices
 Router.get('/', auth, async (req, res) => {
     try {
-        const allData = await Coin.find();
-        res.status(200).json(allData);
+        const { limit = 50, sortBy = 'market_cap_rank', order = 'asc' } = req.query;
+        
+        let sortObj = {};
+        sortObj[sortBy] = order === 'desc' ? -1 : 1;
+        
+        const allData = await Coin.find()
+            .sort(sortObj)
+            .limit(parseInt(limit));
+            
+        res.status(200).json({
+            coins: allData,
+            count: allData.length,
+            lastUpdated: allData.length > 0 ? allData[0].last_updated : null
+        });
     } catch (e) {
         res.status(500).json({ message: e.message });
     }
 });
 
-// Buy coins
+// Get top coins from CoinGecko (real-time)
+Router.get('/top', auth, async (req, res) => {
+    try {
+        const { limit = 50 } = req.query;
+        const topCoins = await priceService.getTopCoins(parseInt(limit));
+        res.status(200).json(topCoins);
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+// Search coins
+Router.get('/search', auth, async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q) {
+            return res.status(400).json({ message: 'Search query is required' });
+        }
+        
+        const results = await priceService.searchCoins(q);
+        res.status(200).json(results);
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+// (moved below specific routes to avoid shadowing)
+
+// Buy coins (uses per-coin portfolio entries)
 Router.post('/buy', auth, async (req, res) => {
     try {
         const { coinId, amount } = req.body;
@@ -25,7 +70,7 @@ Router.post('/buy', auth, async (req, res) => {
             return res.status(400).json({ message: 'Invalid coin ID or amount' });
         }
 
-        // Get coin price
+        // Get coin info
         const coin = await Coin.findOne({ c_id: coinId });
         if (!coin) {
             return res.status(404).json({ message: 'Coin not found' });
@@ -33,23 +78,39 @@ Router.post('/buy', auth, async (req, res) => {
 
         const totalCost = coin.price * amount;
 
-        // Get or create user portfolio
-        let portfolio = await Portfolio.findOne({ userId });
-        if (!portfolio) {
-            portfolio = new Portfolio({ userId });
+        // Ensure wallet exists and has sufficient balance
+        let wallet = await Wallet.findOne({ userId });
+        if (!wallet) {
+            wallet = new Wallet({ userId });
+            await wallet.save();
         }
-
-        // Check if user has enough balance
-        if (portfolio.balance < totalCost) {
+        if (wallet.balance < totalCost) {
             return res.status(400).json({ message: 'Insufficient balance' });
         }
 
-        // Update portfolio
-        portfolio.balance -= totalCost;
-        portfolio.updateHolding(coinId, amount, coin.price);
-        await portfolio.save();
+        // Deduct
+        wallet.balance -= totalCost;
+        await wallet.save();
 
-        // Create transaction record
+        // Upsert portfolio entry for this coin (by userId + coin_name)
+        const existing = await Portfolio.findOne({ userId, coin_name: coin.c_name });
+        let newAmount;
+        let newAvgBuyPrice;
+        if (existing) {
+            const prevAmount = existing.amount || 0;
+            const prevAvg = existing.avgBuyPrice || 0;
+            newAmount = prevAmount + amount;
+            newAvgBuyPrice = newAmount > 0 ? ((prevAmount * prevAvg) + (amount * coin.price)) / newAmount : coin.price;
+            existing.amount = newAmount;
+            existing.avgBuyPrice = newAvgBuyPrice;
+            await existing.save();
+        } else {
+            newAmount = amount;
+            newAvgBuyPrice = coin.price;
+            await new Portfolio({ userId, coin_name: coin.c_name, amount: newAmount, avgBuyPrice: newAvgBuyPrice }).save();
+        }
+
+        // Record transaction
         const transaction = new Transaction({
             userId,
             type: 'buy',
@@ -62,8 +123,8 @@ Router.post('/buy', auth, async (req, res) => {
 
         res.status(200).json({ 
             message: 'Purchase successful',
-            balance: portfolio.balance,
-            holding: portfolio.getHolding(coinId)
+            balance: wallet.balance,
+            holding: { coinId, amount: newAmount }
         });
 
     } catch (e) {
@@ -71,7 +132,7 @@ Router.post('/buy', auth, async (req, res) => {
     }
 });
 
-// Sell coins
+// Sell coins (uses per-coin portfolio entries)
 Router.post('/sell', auth, async (req, res) => {
     try {
         const { coinId, amount } = req.body;
@@ -87,26 +148,31 @@ Router.post('/sell', auth, async (req, res) => {
             return res.status(404).json({ message: 'Coin not found' });
         }
 
-        // Get user portfolio
-        const portfolio = await Portfolio.findOne({ userId });
-        if (!portfolio) {
-            return res.status(400).json({ message: 'Portfolio not found' });
-        }
-
-        // Check if user has enough coins to sell
-        const holding = portfolio.getHolding(coinId);
-        if (!holding || holding.amount < amount) {
+        // Find user's holding entry by coin_name
+        const entry = await Portfolio.findOne({ userId, coin_name: coin.c_name });
+        if (!entry || entry.amount < amount) {
             return res.status(400).json({ message: 'Insufficient coins to sell' });
         }
 
         const totalValue = coin.price * amount;
 
-        // Update portfolio
-        portfolio.balance += totalValue;
-        portfolio.removeHolding(coinId, amount);
-        await portfolio.save();
+        // Update or remove entry
+        entry.amount -= amount;
+        if (entry.amount <= 0) {
+            await Portfolio.deleteOne({ _id: entry._id });
+        } else {
+            await entry.save();
+        }
 
-        // Create transaction record
+        // Credit wallet
+        let wallet = await Wallet.findOne({ userId });
+        if (!wallet) {
+            wallet = new Wallet({ userId });
+        }
+        wallet.balance += totalValue;
+        await wallet.save();
+
+        // Record transaction
         const transaction = new Transaction({
             userId,
             type: 'sell',
@@ -119,8 +185,8 @@ Router.post('/sell', auth, async (req, res) => {
 
         res.status(200).json({ 
             message: 'Sale successful',
-            balance: portfolio.balance,
-            holding: portfolio.getHolding(coinId)
+            balance: wallet.balance,
+            holding: entry.amount > 0 ? { coinId, amount: entry.amount } : null
         });
 
     } catch (e) {
@@ -128,7 +194,7 @@ Router.post('/sell', auth, async (req, res) => {
     }
 });
 
-// Convert coins
+// Convert coins (uses per-coin portfolio entries)
 Router.post('/convert', auth, async (req, res) => {
     try {
         const { fromCoinId, toCoinId, amount } = req.body;
@@ -150,25 +216,36 @@ Router.post('/convert', auth, async (req, res) => {
             return res.status(404).json({ message: 'Coin not found' });
         }
 
-        // Get user portfolio
-        const portfolio = await Portfolio.findOne({ userId });
-        if (!portfolio) {
-            return res.status(400).json({ message: 'Portfolio not found' });
-        }
-
-        // Check if user has enough coins to convert
-        const holding = portfolio.getHolding(fromCoinId);
-        if (!holding || holding.amount < amount) {
+        // Find user's from holding entry by coin_name
+        const fromEntry = await Portfolio.findOne({ userId, coin_name: fromCoin.c_name });
+        if (!fromEntry || fromEntry.amount < amount) {
             return res.status(400).json({ message: 'Insufficient coins to convert' });
         }
 
         const fromValue = fromCoin.price * amount;
-        const toAmount = fromValue / toCoin.price;
+        const toAmount = Math.round((fromValue / toCoin.price) * 1000000) / 1000000; // Round to 6 decimal places
 
-        // Update portfolio
-        portfolio.removeHolding(fromCoinId, amount);
-        portfolio.updateHolding(toCoinId, toAmount, toCoin.price);
-        await portfolio.save();
+        // Decrease from entry
+        fromEntry.amount -= amount;
+        if (fromEntry.amount <= 0) {
+            await Portfolio.deleteOne({ _id: fromEntry._id });
+        } else {
+            await fromEntry.save();
+        }
+
+        // Increase to entry
+        const toEntry = await Portfolio.findOne({ userId, coin_name: toCoin.c_name });
+        if (toEntry) {
+            const prevAmount = toEntry.amount || 0;
+            const prevAvg = toEntry.avgBuyPrice || 0;
+            const newAmount = prevAmount + toAmount;
+            const newAvg = newAmount > 0 ? ((prevAmount * prevAvg) + (toAmount * toCoin.price)) / newAmount : toCoin.price;
+            toEntry.amount = newAmount;
+            toEntry.avgBuyPrice = newAvg;
+            await toEntry.save();
+        } else {
+            await new Portfolio({ userId, coin_name: toCoin.c_name, amount: toAmount, avgBuyPrice: toCoin.price }).save();
+        }
 
         // Create transaction record
         const transaction = new Transaction({
@@ -184,9 +261,7 @@ Router.post('/convert', auth, async (req, res) => {
         await transaction.save();
 
         res.status(200).json({ 
-            message: 'Conversion successful',
-            fromHolding: portfolio.getHolding(fromCoinId),
-            toHolding: portfolio.getHolding(toCoinId)
+            message: 'Conversion successful'
         });
 
     } catch (e) {
@@ -208,18 +283,108 @@ Router.get('/transactions', auth, async (req, res) => {
     }
 });
 
-// Get user portfolio
+// Get user portfolio (returns holdings summary)
 Router.get('/portfolio', auth, async (req, res) => {
     try {
         const userId = req.user.id;
-        let portfolio = await Portfolio.findOne({ userId });
-        
-        if (!portfolio) {
-            portfolio = new Portfolio({ userId });
-            await portfolio.save();
-        }
+        const entries = await Portfolio.find({ userId });
+        const coins = await Coin.find({}, { c_id: 1, c_name: 1 });
+        const nameToId = new Map(coins.map(c => [c.c_name, c.c_id]));
+        const holdings = entries.map(e => ({
+            coinId: nameToId.get(e.coin_name) || e.coin_name,
+            amount: e.amount
+        }));
+        const wallet = await Wallet.findOne({ userId }) || { balance: 10000 };
+        res.status(200).json({ balance: wallet.balance, holdings });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
 
-        res.status(200).json(portfolio);
+// Price management endpoints
+Router.post('/refresh-prices', auth, async (req, res) => {
+    try {
+        await priceUpdater.updateAllPrices();
+        res.status(200).json({ message: 'Prices refreshed successfully' });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+Router.post('/add-top-coins', auth, async (req, res) => {
+    try {
+        const { limit = 50 } = req.body;
+        const addedCount = await priceUpdater.addTopCoins(limit);
+        res.status(200).json({ 
+            message: `Added ${addedCount} new coins to database`,
+            addedCount 
+        });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+Router.get('/price-status', auth, async (req, res) => {
+    try {
+        const status = priceUpdater.getStatus();
+        res.status(200).json(status);
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+Router.post('/start-auto-update', auth, async (req, res) => {
+    try {
+        const { frequency = 60000 } = req.body; // Default 1 minute
+        priceUpdater.startAutoUpdate(frequency);
+        res.status(200).json({ 
+            message: 'Auto price updates started',
+            frequency: frequency 
+        });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+Router.post('/stop-auto-update', auth, async (req, res) => {
+    try {
+        priceUpdater.stopAutoUpdate();
+        res.status(200).json({ message: 'Auto price updates stopped' });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+// Get specific coin details (keep last so dynamic route doesn't shadow others)
+Router.get('/:coinId', auth, async (req, res) => {
+    try {
+        const { coinId } = req.params;
+        
+        // First try to get from database
+        let coin = await Coin.findOne({ c_id: coinId });
+        
+        if (!coin) {
+            // If not in database, fetch from API
+            const coinDetails = await priceService.getCoinDetails(coinId);
+            
+            // Save to database for future use
+            coin = new Coin({
+                c_id: coinDetails.id,
+                c_name: coinDetails.name,
+                symbol: coinDetails.symbol,
+                price: coinDetails.current_price,
+                market_cap: coinDetails.market_cap,
+                market_cap_rank: coinDetails.market_cap_rank,
+                price_change_24h: coinDetails.price_change_24h,
+                volume_24h: coinDetails.volume_24h,
+                image: coinDetails.image,
+                last_updated: new Date(coinDetails.last_updated)
+            });
+            
+            await coin.save();
+        }
+        
+        res.status(200).json(coin);
     } catch (e) {
         res.status(500).json({ message: e.message });
     }

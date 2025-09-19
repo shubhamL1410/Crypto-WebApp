@@ -57,15 +57,6 @@
   cursor: pointer;
 }
 
-/* .navbar-brand {
-  font-weight: 700 !important;
-  font-size: 18px !important;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
- */
 .navbar a:hover {
   background: #f8f9fa;
   color: #333;
@@ -319,4 +310,49 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(102, 126, 234, 0.7);
+}
+
+/* Spinning animation for loading */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Enhanced button hover effects */
+.navbar a:hover {
+  background: #f8f9fa;
+  color: #333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Hero section button animations */
+.hero-button {
+  transition: all 0.3s ease;
+}
+
+.hero-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Coin card animations */
+.coin-card {
+  transition: all 0.3s ease;
+}
+
+.coin-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Pulse animation for stats */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.stats-card:hover {
+  animation: pulse 0.6s ease-in-out;
 }

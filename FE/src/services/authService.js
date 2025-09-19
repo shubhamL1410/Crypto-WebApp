@@ -77,10 +77,61 @@ export const authService = {
       console.log('Fetching user profile...');
       const response = await api.get('/users/profile');
       console.log('Profile fetched successfully:', response.data);
+      // Keep local user in sync if structure matches
+      if (response.data && response.data._id) {
+        localStorage.setItem('user', JSON.stringify(response.data));
+      }
       return response.data;
     } catch (error) {
       console.error('Failed to get profile:', error.response?.data || error.message);
       throw error.response?.data || { message: 'Failed to get profile' };
+    }
+  },
+
+  // Get active user count
+  async getActiveUserCount() {
+    try {
+      const response = await api.get('/users/active-count');
+      return typeof response.data === 'number' ? response.data : (response.data?.count || 0);
+    } catch (error) {
+      console.error('Failed to get active user count:', error.response?.data || error.message);
+      // Fallback to 0 on failure
+      return 0;
+    }
+  },
+
+  // Get total user count (robust to different backend routes)
+  async getTotalUserCount() {
+    const candidatePaths = ['/users/count', '/users/total', '/users/stats', '/users/active-count'];
+    for (const path of candidatePaths) {
+      try {
+        const response = await api.get(path);
+        const data = response.data;
+        if (typeof data === 'number') return data;
+        if (typeof data?.count === 'number') return data.count;
+        if (typeof data?.total === 'number') return data.total;
+        if (typeof data?.users === 'number') return data.users;
+      } catch (e) {
+        // try next path
+      }
+    }
+    console.error('Failed to get total user count from all known endpoints.');
+    return 0;
+  },
+
+  // Update current user profile
+  async updateProfile(profileData) {
+    try {
+      console.log('Updating user profile...');
+      const response = await api.put('/users/profile', profileData);
+      console.log('Profile updated successfully:', response.data);
+      if (response.data) {
+        localStorage.setItem('user', JSON.stringify(response.data));
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update profile:', error.response?.data || error.message);
+      throw error.response?.data || { message: 'Failed to update profile' };
     }
   },
 

@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userSchma");
 const auth = require("../middleware/auth");
+const Wallet = require("../models/wallet");
 
 // POST register a new user
 Router.post('/register', async (req, res) => {
@@ -28,6 +29,17 @@ Router.post('/register', async (req, res) => {
         });
 
         await user.save();
+
+        // Create default wallet with 10000 balance
+        try {
+            const existingWallet = await Wallet.findOne({ userId: user._id });
+            if (!existingWallet) {
+                await new Wallet({ userId: user._id, balance: 10000 }).save();
+            }
+        } catch (walletErr) {
+            console.error('Failed to create default wallet:', walletErr.message);
+            // Do not block registration on wallet failure
+        }
 
         // Create JWT token
         const token = jwt.sign(

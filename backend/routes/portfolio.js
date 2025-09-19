@@ -5,7 +5,7 @@ const auth = require("../middleware/auth");
 const Portfolio = require("../models/portfolio");
 
 // All portfolio routes now require authentication
-Router.get('/portfolio', auth, async (req, res) => {
+Router.get('/', auth, async (req, res) => {
     try {
         const allData = await Portfolio.find({ userId: req.user._id }).populate('userId', 'name email');
         res.status(200).json(allData);
@@ -14,7 +14,7 @@ Router.get('/portfolio', auth, async (req, res) => {
     }
 });
 
-Router.get('/portfolio/:uid', auth, async (req, res) => {
+Router.get('/:uid', auth, async (req, res) => {
     try {
         const uid = req.params.uid;
         // Only allow users to access their own portfolio
@@ -28,7 +28,7 @@ Router.get('/portfolio/:uid', auth, async (req, res) => {
     }
 });
 
-Router.post('/portfolio', auth, async (req, res) => {
+Router.post('/', auth, async (req, res) => {
     try {
         const { coin_name, amount } = req.body;
         const u = new Portfolio({
@@ -45,7 +45,7 @@ Router.post('/portfolio', auth, async (req, res) => {
 });
 
 // 🔄 Update portfolio entry by ID (protected)
-Router.put('/portfolio/:id', auth, async (req, res) => {
+Router.put('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params;
         const { amount, avgBuyPrice } = req.body;
@@ -72,7 +72,7 @@ Router.put('/portfolio/:id', auth, async (req, res) => {
 });
 
 // ❌ Delete portfolio by ID (protected)
-Router.delete('/portfolio/:id', auth, async (req, res) => {
+Router.delete('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params;
         
