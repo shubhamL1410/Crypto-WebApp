@@ -43,7 +43,12 @@ const CoinPage = () => {
     
     try {
       const results = await coinsService.searchCoins(query);
-      setSearchResults(results);
+      // Filter for exact matches only (case-insensitive)
+      const exactMatches = results.filter(coin => 
+        coin.name.toLowerCase() === query.toLowerCase() || 
+        coin.symbol.toLowerCase() === query.toLowerCase()
+      );
+      setSearchResults(exactMatches);
       setShowSearch(true);
     } catch (err) {
       console.error('Search failed:', err);
@@ -116,70 +121,70 @@ const CoinPage = () => {
         </p>
       )}
 
-      <div style={{marginBottom: '1rem'}}>
+      <div className="search-container">
         <input
           type="text"
           placeholder="Search cryptocurrencies..."
           value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            handleSearch(e.target.value);
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              handleSearch(searchQuery);
+            }
           }}
-          style={{
-            padding: '0.5rem',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            width: '300px',
-            marginRight: '0.5rem'
-          }}
+          className="search-input"
         />
         <button 
-          onClick={() => setShowSearch(!showSearch)}
-          style={{
-            padding: '0.5rem 1rem',
-            background: '#667eea',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+          onClick={() => handleSearch(searchQuery)}
+          className="search-btn"
         >
-          {showSearch ? 'Hide Search' : 'Show Search'}
+          Search
+        </button>
+        <button 
+          onClick={() => {
+            setSearchQuery('');
+            setSearchResults([]);
+            setShowSearch(false);
+          }}
+          className="clear-btn"
+        >
+          Clear
         </button>
       </div>
       
-      {showSearch && searchResults.length > 0 && (
-        <div style={{
-          background: 'white',
-          padding: '1rem',
-          borderRadius: '8px',
-          marginBottom: '1rem',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
+      {showSearch && (
+        <div className="search-results">
           <h3>Search Results</h3>
-          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem'}}>
-            {searchResults.slice(0, 6).map((coin) => (
-              <div key={coin.id} style={{
-                padding: '0.5rem',
-                border: '1px solid #e1e5e9',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}>
-                <div style={{display: 'flex', alignItems: 'center'}}>
-                  {coin.thumb && (
-                    <img src={coin.thumb} alt={coin.name} style={{width: '20px', height: '20px', marginRight: '0.5rem'}} />
-                  )}
-                  <div>
-                    <h4 style={{margin: 0, fontSize: '0.9rem'}}>{coin.name}</h4>
-                    <span style={{fontSize: '0.8rem', color: '#666'}}>{coin.symbol?.toUpperCase()}</span>
+          {searchResults.length > 0 ? (
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem'}}>
+              {searchResults.slice(0, 6).map((coin) => (
+                <div key={coin.id} style={{
+                  padding: '0.5rem',
+                  border: '1px solid #e1e5e9',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}>
+                  <div style={{display: 'flex', alignItems: 'center'}}>
+                    {coin.thumb && (
+                      <img src={coin.thumb} alt={coin.name} style={{width: '20px', height: '20px', marginRight: '0.5rem'}} />
+                    )}
+                    <div>
+                      <h4 style={{margin: 0, fontSize: '0.9rem'}}>{coin.name}</h4>
+                      <span style={{fontSize: '0.8rem', color: '#666'}}>{coin.symbol?.toUpperCase()}</span>
+                    </div>
+                  </div>
+                  <div style={{fontSize: '0.8rem', color: '#666', marginTop: '0.25rem'}}>
+                    Rank: {coin.market_cap_rank || 'N/A'}
                   </div>
                 </div>
-                <div style={{fontSize: '0.8rem', color: '#666', marginTop: '0.25rem'}}>
-                  Rank: {coin.market_cap_rank || 'N/A'}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-results">
+              <p>No exact matches found for "{searchQuery}"</p>
+              <p style={{fontSize: '0.9rem'}}>Try searching for the exact coin name or symbol (e.g., "Bitcoin" or "BTC")</p>
+            </div>
+          )}
         </div>
       )}
 
