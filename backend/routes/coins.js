@@ -292,7 +292,8 @@ Router.get('/portfolio', auth, async (req, res) => {
         const nameToId = new Map(coins.map(c => [c.c_name, c.c_id]));
         const holdings = entries.map(e => ({
             coinId: nameToId.get(e.coin_name) || e.coin_name,
-            amount: e.amount
+            amount: e.amount,
+            avgBuyPrice: e.avgBuyPrice || 0
         }));
         const wallet = await Wallet.findOne({ userId }) || { balance: 10000 };
         res.status(200).json({ balance: wallet.balance, holdings });

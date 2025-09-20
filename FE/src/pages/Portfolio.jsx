@@ -37,7 +37,7 @@ const Portfolio = () => {
         const portfolioItems = portfolioData.holdings.map(holding => ({
           coin_name: holding.coinId,
           amount: holding.amount,
-          avgBuyPrice: 0 // We'll calculate this from transactions if needed
+          avgBuyPrice: holding.avgBuyPrice || 0
         }));
         
         setPortfolio(portfolioItems);
