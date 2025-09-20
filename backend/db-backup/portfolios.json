@@ -1,0 +1,112 @@
+[
+  {
+    "_id": "68c1a5fd99e730d380b964b2",
+    "userId": "68c1a5fd99e730d380b964ae",
+    "coin_name": "Bitcoin",
+    "amount": 0.5,
+    "avgBuyPrice": 42000,
+    "createdAt": "2025-09-10T16:23:25.981Z",
+    "updatedAt": "2025-09-10T16:23:25.981Z",
+    "__v": 0
+  },
+  {
+    "_id": "68c1a5fd99e730d380b964b3",
+    "userId": "68c1a5fd99e730d380b964ae",
+    "coin_name": "Ethereum",
+    "amount": 2,
+    "avgBuyPrice": 3000,
+    "createdAt": "2025-09-10T16:23:25.981Z",
+    "updatedAt": "2025-09-10T16:23:25.981Z",
+    "__v": 0
+  },
+  {
+    "_id": "68c1a5fd99e730d380b964b4",
+    "userId": "68c1a5fd99e730d380b964ae",
+    "coin_name": "Solana",
+    "amount": 10,
+    "avgBuyPrice": 90,
+    "createdAt": "2025-09-10T16:23:25.982Z",
+    "updatedAt": "2025-09-10T16:23:25.982Z",
+    "__v": 0
+  },
+  {
+    "_id": "68c1a6860395671993248d2f",
+    "userId": "68c1a6750395671993248d1d",
+    "coin_name": "Solana",
+    "amount": 1,
+    "avgBuyPrice": 223.14,
+    "createdAt": "2025-09-10T16:25:42.899Z",
+    "updatedAt": "2025-09-10T16:25:42.900Z",
+    "__v": 0
+  },
+  {
+    "_id": "68c786833bf1bec2bd4f2b77",
+    "userId": "68c1a6750395671993248d1d",
+    "coin_name": "XRP",
+    "amount": 1.8574834437086092,
+    "avgBuyPrice": 3.035181831146606,
+    "createdAt": "2025-09-15T03:22:43.301Z",
+    "updatedAt": "2025-09-17T17:08:20.096Z",
+    "__v": 0
+  },
+  {
+    "_id": "68c7869f3bf1bec2bd4f2b86",
+    "userId": "68c1a6750395671993248d1d",
+    "coin_name": "BNB",
+    "amount": 4,
+    "avgBuyPrice": 971.5799999999999,
+    "createdAt": "2025-09-15T03:23:11.310Z",
+    "updatedAt": "2025-09-19T16:32:22.165Z",
+    "__v": 0
+  },
+  {
+    "_id": "68c7872c3bf1bec2bd4f2bbc",
+    "userId": "68c1a6750395671993248d1d",
+    "coin_name": "Chainlink",
+    "amount": 0.0058250825082508395,
+    "avgBuyPrice": 24.24,
+    "createdAt": "2025-09-15T03:25:32.132Z",
+    "updatedAt": "2025-09-17T17:08:20.083Z",
+    "__v": 0
+  },
+  {
+    "_id": "68caeb4b2a447d3dc9f0955b",
+    "userId": "68c1a6750395671993248d1d",
+    "coin_name": "Hyperliquid",
+    "amount": 10,
+    "avgBuyPrice": 55.04,
+    "createdAt": "2025-09-17T17:09:31.022Z",
+    "updatedAt": "2025-09-17T17:09:31.023Z",
+    "__v": 0
+  },
+  {
+    "_id": "68caeb592a447d3dc9f0956a",
+    "userId": "68c1a6750395671993248d1d",
+    "coin_name": "Polkadot",
+    "amount": 45,
+    "avgBuyPrice": 4.19,
+    "createdAt": "2025-09-17T17:09:45.832Z",
+    "updatedAt": "2025-09-17T17:10:02.360Z",
+    "__v": 0
+  },
+  {
+    "_id": "68caf0732a447d3dc9f0967c",
+    "userId": "68caf0312a447d3dc9f0962f",
+    "coin_name": "Bitcoin",
+    "amount": 0.01,
+    "avgBuyPrice": 115689,
+    "createdAt": "2025-09-17T17:31:31.300Z",
+    "updatedAt": "2025-09-17T17:31:31.301Z",
+    "__v": 0
+  },
+  {
+    "_id": "68cd78f137318dbe77d9596e",
+    "userId": "68caf0312a447d3dc9f0962f",
+    "coin_name": "Avalanche",
+    "amount": 10,
+    "avgBuyPrice": 33.84,
+    "createdAt": "2025-09-19T15:38:25.286Z",
+    "updatedAt": "2025-09-19T15:38:25.288Z",
+    "__v": 0
+  }
+]
