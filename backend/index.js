@@ -1,11 +1,10 @@
-require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
 const connectDB = require("./db");
 const mongoose = require("mongoose");
 const priceUpdater = require("./services/priceUpdater");
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 // Middleware
 app.use(cors());

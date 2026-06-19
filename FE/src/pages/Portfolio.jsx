@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { portfolioService } from '../services/portfolioService';
 import { coinsService } from '../services/coinsService';
 import { authService } from '../services/authService';
+import ExpenseChart from '../components/ExpenseChart';
 import './Portfolio.css';
 
 const Portfolio = () => {
@@ -172,6 +173,9 @@ const Portfolio = () => {
           </div>
         </div>
       </div>
+
+      {/* Expense Chart */}
+      <ExpenseChart />
 
       {portfolio.length === 0 ? (
         <div className="empty-portfolio">

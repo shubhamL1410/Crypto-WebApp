@@ -29,7 +29,7 @@ Router.post('/register', async (req, res) => {
         });
 
         await user.save();
-
+        
         // Create default wallet with 10000 balance
         try {
             const existingWallet = await Wallet.findOne({ userId: user._id });
@@ -44,7 +44,7 @@ Router.post('/register', async (req, res) => {
         // Create JWT token
         const token = jwt.sign(
             { userId: user._id },
-            process.env.JWT_SECRET,
+            'your-jwt-secret-key-change-in-production',
             { expiresIn: '7d' }
         );
 
@@ -86,7 +86,7 @@ Router.post('/login', async (req, res) => {
         // Create JWT token
         const token = jwt.sign(
             { userId: user._id },
-            process.env.JWT_SECRET,
+            'your-jwt-secret-key-change-in-production',
             { expiresIn: '7d' }
         );
 
